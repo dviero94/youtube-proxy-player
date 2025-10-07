@@ -1,113 +1,115 @@
-<iframe srcdoc="<!DOCTYPE html>
-<html lang=&quot;it&quot;>
+<!DOCTYPE html>
+<html lang="it">
 <head>
-<meta charset=&quot;UTF-8&quot;>
-<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#000;overflow:hidden;font-family:system-ui,sans-serif;}
-#player-container{position:relative;width:100vw;height:56.25vw;max-height:100vh;background:#000;}
-#youtube-player{width:100%;height:100%;pointer-events:none;}
-#custom-controls{position:absolute;bottom:0;left:0;right:0;padding:15px;display:flex;align-items:center;gap:10px;background:linear-gradient(to top, rgba(0,0,0,0.7), transparent);}
-.control-btn{width:35px;height:35px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.control-btn:hover{background:rgba(255,255,255,0.3);}
-#progress-container{flex:1;height:5px;background:rgba(255,255,255,0.2);border-radius:3px;position:relative;cursor:pointer;}
-#progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#8b5cf6,#3b82f6);border-radius:3px;}
-select{padding:5px;border-radius:5px;border:none;background:rgba(255,255,255,0.2);color:white;}
-select:hover{background:rgba(255,255,255,0.3);}
-label{color:white;font-size:14px;}
-#bottom-controls{display:flex;gap:10px;align-items:center;}
-</style>
+  <meta charset="UTF-8">
+  <title>YouTube Proxy Player</title>
+  <style>
+    body {
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+      font-family: sans-serif;
+    }
+    #player {
+      width: 80%;
+      max-width: 1280px;
+      aspect-ratio: 16/9;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+  </style>
 </head>
 <body>
-<div id=&quot;player-container&quot;>
-  <div id=&quot;youtube-player&quot;></div>
-  <div id=&quot;custom-controls&quot;>
-    <button class=&quot;control-btn&quot; id=&quot;play-pause&quot;>▶️</button>
-    <div id=&quot;progress-container&quot;><div id=&quot;progress-bar&quot;></div></div>
-    <div id=&quot;bottom-controls&quot;>
-      <label for=&quot;speed&quot;>Velocità:</label>
-      <select id=&quot;speed&quot;>
-        <option value=&quot;1&quot;>1x</option>
-        <option value=&quot;1.25&quot;>1.25x</option>
-        <option value=&quot;1.5&quot;>1.5x</option>
-        <option value=&quot;2&quot;>2x</option>
-      </select>
-      <label for=&quot;quality&quot;>Qualità:</label>
-      <select id=&quot;quality&quot;>
-        <option value=&quot;hd1080&quot;>1080p</option>
-        <option value=&quot;hd2160&quot; selected>4K</option>
-      </select>
-      <button class=&quot;control-btn&quot; id=&quot;fullscreen-btn&quot; title=&quot;Schermo intero&quot;>⛶</button>
-    </div>
+  <div id="player"></div>
+  <div class="controls">
+    <button onclick="setPlaybackRate(1)">1x</button>
+    <button onclick="setPlaybackRate(1.25)">1.25x</button>
+    <button onclick="setPlaybackRate(1.5)">1.5x</button>
+    <button onclick="setPlaybackRate(2)">2x</button>
+
+    <button onclick="setQuality('hd1080')">1080p</button>
+    <button onclick="setQuality('hd2160')">4K</button>
+
+    <button onclick="toggleFullScreen()">Fullscreen</button>
+    <button onclick="startAirPlay()">📺 AirPlay / Smart TV</button>
   </div>
-</div>
 
-<script src=&quot;https://www.youtube.com/iframe_api&quot;></script>
-<script>
-let player,isPlaying=false,updateInterval,qualityCheck;
-const videoId='Yz5eq72OEW4';
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
 
-function onYouTubeIframeAPIReady(){
-  player=new YT.Player('youtube-player',{
-    videoId:videoId,
-    playerVars:{controls:0,modestbranding:1,rel:0,showinfo:0,iv_load_policy:3,disablekb:1,fs:1,autoplay:0},
-    events:{onReady:onPlayerReady,onStateChange:onPlayerStateChange}
-  });
-}
-
-function onPlayerReady(){
-  // Forza 4K di default con retry loop
-  forceQuality('hd2160');
-  document.getElementById('quality').addEventListener('change',e=>{
-    forceQuality(e.target.value);
-  });
-}
-
-function onPlayerStateChange(e){
-  if(e.data===YT.PlayerState.PLAYING){isPlaying=true;startProgress();}
-  else{isPlaying=false;stopProgress();}
-}
-
-function forceQuality(q){
-  clearInterval(qualityCheck);
-  let attempts=0;
-  qualityCheck=setInterval(()=>{
-    if(player && player.setPlaybackQuality){
-      player.setPlaybackQuality(q);
-      attempts++;
-      if(attempts>20)clearInterval(qualityCheck);
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        videoId: 'ofCVbNFHqHs', // <-- sostituisci col tuo ID video
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          vq: 'hd2160'
+        },
+        events: {
+          'onReady': (event) => event.target.setPlaybackQuality('hd2160')
+        }
+      });
     }
-  },500);
-}
 
-function startProgress(){updateInterval=setInterval(updateProgress,100);}
-function stopProgress(){clearInterval(updateInterval);}
-function updateProgress(){
-  if(!player.getDuration)return;
-  const c=player.getCurrentTime()||0,d=player.getDuration()||1,p=(c/d)*100;
-  document.getElementById('progress-bar').style.width=p+'%';
-}
+    function setPlaybackRate(rate) {
+      if (player) player.setPlaybackRate(rate);
+    }
 
-document.getElementById('play-pause').addEventListener('click',()=>{
-  if(isPlaying)player.pauseVideo();else player.playVideo();
-});
-document.getElementById('progress-container').addEventListener('click',e=>{
-  const r=e.currentTarget.getBoundingClientRect(),p=(e.clientX-r.left)/r.width;
-  player.seekTo(player.getDuration()*p);
-});
-document.getElementById('speed').addEventListener('change',e=>{
-  if(player)player.setPlaybackRate(parseFloat(e.target.value));
-});
-document.getElementById('fullscreen-btn').addEventListener('click',()=>{
-  const container=document.getElementById('player-container');
-  if(document.fullscreenElement){document.exitFullscreen();}
-  else if(container.requestFullscreen){container.requestFullscreen();}
-});
-</script>
+    function setQuality(quality) {
+      if (player) player.setPlaybackQuality(quality);
+    }
+
+    function toggleFullScreen() {
+      const iframe = player.getIframe();
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+      else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
+      else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+    }
+
+    async function startAirPlay() {
+      const iframe = player.getIframe();
+      try {
+        const videoEl = iframe; 
+        if ('remote' in videoEl) {
+          await videoEl.remote.prompt(); // API Remote Playback (alcuni browser)
+        } else if (window.WebKitPlaybackTargetAvailabilityEvent) {
+          alert('Premi il pulsante AirPlay nel browser per trasmettere.');
+        } else {
+          alert('AirPlay non supportato su questo dispositivo.');
+        }
+      } catch (e) {
+        console.error('Errore AirPlay:', e);
+        alert('AirPlay non disponibile.');
+      }
+    }
+  </script>
 </body>
-</html>" 
-style="width:100%;height:400px;border:none;" 
-allowfullscreen 
-allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; clipboard-write">
-</iframe>
+</html>
