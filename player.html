@@ -45,9 +45,8 @@ label{color:white;font-size:14px;}
 
 <script src=&quot;https://www.youtube.com/iframe_api&quot;></script>
 <script>
-let player,isPlaying=false,updateInterval;
-const params=new URLSearchParams(window.location.search);
-const videoId=params.get('v')||'Yz5eq72OEW4';
+let player,isPlaying=false,updateInterval,qualityCheck;
+const videoId='Yz5eq72OEW4';
 
 function onYouTubeIframeAPIReady(){
   player=new YT.Player('youtube-player',{
@@ -58,13 +57,30 @@ function onYouTubeIframeAPIReady(){
 }
 
 function onPlayerReady(){
-  document.getElementById('quality').dispatchEvent(new Event('change'));
-  updateProgress();
+  // Forza 4K di default con retry loop
+  forceQuality('hd2160');
+  document.getElementById('quality').addEventListener('change',e=>{
+    forceQuality(e.target.value);
+  });
 }
+
 function onPlayerStateChange(e){
   if(e.data===YT.PlayerState.PLAYING){isPlaying=true;startProgress();}
   else{isPlaying=false;stopProgress();}
 }
+
+function forceQuality(q){
+  clearInterval(qualityCheck);
+  let attempts=0;
+  qualityCheck=setInterval(()=>{
+    if(player && player.setPlaybackQuality){
+      player.setPlaybackQuality(q);
+      attempts++;
+      if(attempts>20)clearInterval(qualityCheck);
+    }
+  },500);
+}
+
 function startProgress(){updateInterval=setInterval(updateProgress,100);}
 function stopProgress(){clearInterval(updateInterval);}
 function updateProgress(){
@@ -82,9 +98,6 @@ document.getElementById('progress-container').addEventListener('click',e=>{
 });
 document.getElementById('speed').addEventListener('change',e=>{
   if(player)player.setPlaybackRate(parseFloat(e.target.value));
-});
-document.getElementById('quality').addEventListener('change',e=>{
-  if(player)player.setPlaybackQuality(e.target.value);
 });
 document.getElementById('fullscreen-btn').addEventListener('click',()=>{
   const container=document.getElementById('player-container');
