@@ -1,188 +1,186 @@
-<!DOCTYPE html>
-<html lang="it">
+<iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;it&quot;>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Proxy Player</title>
-<style>
-  html, body {
-    margin: 0;
-    height: 100%;
-    background: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #player-container {
-    width: 100%;
-    height: 100%;
-    max-width: 800px;
-    aspect-ratio: 16/9;
-    position: relative;
-    background: #000;
-  }
-
-  #player {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Overlay trasparente per bloccare Share */
-  #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    z-index: 10;
-    cursor: pointer; /* opzionale */
-  }
-
-  /* Controlli personalizzati */
-  #controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    z-index: 20;
-  }
-
-  .btn {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,0.2);
-    color: white;
-    cursor: pointer;
-  }
-
-  .btn:hover {
-    background: rgba(255,255,255,0.3);
-  }
-
-  #progress-container {
-    flex: 1;
-    height: 6px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-  }
-
-  #progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #8b5cf6, #3b82f6);
-    border-radius: 3px;
-  }
-</style>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #000; overflow: hidden; }
+        #player-container { position: relative; width: 100vw; height: 100vh; background: #000; }
+        #youtube-player { width: 100%; height: 100%; pointer-events: none; }
+        #custom-controls { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #player-container:hover #custom-controls { opacity: 1; }
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: white;
+        }
+        .control-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        #progress-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        #volume-container {
+            width: 80px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        #volume-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+            border-radius: 3px;
+            width: 100%;
+        }
+        .time-display {
+            color: white;
+            font-size: 14px;
+            min-width: 100px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-
-<div id="player-container">
-  <div id="player"></div>
-  <div id="overlay"></div>
-
-  <!-- Controlli -->
-  <div id="controls">
-    <button class="btn" id="play-pause">▶️</button>
-    <div id="progress-container">
-      <div id="progress-bar"></div>
+    <div id=&quot;player-container&quot;>
+        <div id=&quot;youtube-player&quot;></div>
+        <div id=&quot;custom-controls&quot;>
+            <button class=&quot;control-btn&quot; id=&quot;play-pause&quot;>
+                <svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot;>
+                    <path id=&quot;play-icon&quot; d=&quot;M8 5v14l11-7z&quot;/>
+                    <path id=&quot;pause-icon&quot; d=&quot;M6 4h4v16H6V4zm8 0h4v16h-4V4z&quot; style=&quot;display:none&quot;/>
+                </svg>
+            </button>
+            <div class=&quot;time-display&quot; id=&quot;time-display&quot;>0:00 / 0:00</div>
+            <div id=&quot;progress-container&quot;>
+                <div id=&quot;progress-bar&quot;></div>
+            </div>
+            <div id=&quot;volume-container&quot;>
+                <div id=&quot;volume-bar&quot;></div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script src="https://www.youtube.com/iframe_api"></script>
-<script>
-  // Prende ID video dalla query string ?v=
-  const params = new URLSearchParams(window.location.search);
-  const videoId = params.get('v') || 'JUiH2nspbgQ';
+    <script src=&quot;https://www.youtube.com/iframe_api&quot;></script>
+    <script>
+        let player;
+        let isPlaying = false;
+        let updateInterval;
 
-  let player;
-  let isPlaying = false;
-  let progressInterval;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                videoId: 'Yz5eq72OEW4',
+                playerVars: {
+                    controls: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    iv_load_policy: 3,
+                    disablekb: 1,
+                    fs: 0,
+                    autoplay: 0
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+        }
 
-  function onYouTubeIframeAPIReady() {
-    player = new YT.Player('player', {
-      videoId: videoId,
-      playerVars: {
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0
-      },
-      events: {
-        onReady: onPlayerReady,
-        onStateChange: onPlayerStateChange
-      }
-    });
-  }
+        function onPlayerReady() {
+            updateTimeDisplay();
+        }
 
-  function onPlayerReady() {
-    updateProgress();
-  }
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('play-icon').style.display = 'none';
+                document.getElementById('pause-icon').style.display = 'block';
+                startProgressUpdate();
+            } else {
+                isPlaying = false;
+                document.getElementById('play-icon').style.display = 'block';
+                document.getElementById('pause-icon').style.display = 'none';
+                stopProgressUpdate();
+            }
+        }
 
-  function onPlayerStateChange(event) {
-    if(event.data === YT.PlayerState.PLAYING){
-      isPlaying = true;
-      startProgress();
-    } else {
-      isPlaying = false;
-      stopProgress();
-    }
-  }
+        function startProgressUpdate() {
+            updateInterval = setInterval(() => {
+                const currentTime = player.getCurrentTime();
+                const duration = player.getDuration();
+                const progress = (currentTime / duration) * 100;
+                document.getElementById('progress-bar').style.width = progress + '%';
+                updateTimeDisplay();
+            }, 100);
+        }
 
-  function startProgress() {
-    progressInterval = setInterval(updateProgress, 200);
-  }
+        function stopProgressUpdate() {
+            clearInterval(updateInterval);
+        }
 
-  function stopProgress() {
-    clearInterval(progressInterval);
-  }
+        function updateTimeDisplay() {
+            const current = player.getCurrentTime() || 0;
+            const duration = player.getDuration() || 0;
+            document.getElementById('time-display').textContent = 
+                formatTime(current) + ' / ' + formatTime(duration);
+        }
 
-  function updateProgress() {
-    if(!player) return;
-    const duration = player.getDuration() || 0;
-    const current = player.getCurrentTime() || 0;
-    const percent = (current / duration) * 100;
-    document.getElementById('progress-bar').style.width = percent + '%';
-  }
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
 
-  // Play/pause button
-  document.getElementById('play-pause').addEventListener('click', () => {
-    if(!player) return;
-    if(isPlaying){
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
-  });
+        document.getElementById('play-pause').addEventListener('click', () => {
+            if (isPlaying) player.pauseVideo();
+            else player.playVideo();
+        });
 
-  // Overlay click (può anche fare play/pause)
-  document.getElementById('overlay').addEventListener('click', () => {
-    if(!player) return;
-    if(isPlaying){
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
-  });
+        document.getElementById('progress-container').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            player.seekTo(player.getDuration() * percent);
+        });
 
-  // Progress bar click
-  document.getElementById('progress-container').addEventListener('click', (e)=>{
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    if(player) player.seekTo(player.getDuration() * percent);
-  });
-</script>
-
+        document.getElementById('volume-container').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            player.setVolume(percent * 100);
+            document.getElementById('volume-bar').style.width = (percent * 100) + '%';
+        });
+    </script>
 </body>
-</html>
+</html>" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
